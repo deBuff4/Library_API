@@ -37,7 +37,19 @@ def get_book(id: int):
 
 # Работа с рецензиями
 
+@app.get("/books/{id}/reviews")
+def get_review(id: int):
+    db = sqlite3.connect("books_database.db")
+    c = db.cursor()
 
+    c.execute(f'SELECT title, comment FROM books '
+              f' JOIN reviews ON books.id = reviews.book_id'
+              f'WHERE books.id = {id}')
+
+    out = c.fetchall()
+    db.commit()
+    db.close()
+    return out
 
 # Специальные эндпоинты
 @app.get("/books/list/recomendations")
