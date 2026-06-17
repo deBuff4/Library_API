@@ -1,7 +1,14 @@
 import sqlite3
 from fastapi import FastAPI
-
+from pydantic import BaseModel
 app = FastAPI()
+
+class NewBook(BaseModel):
+    title: str
+    author: str
+    year: int
+    genre: str
+    is_read: bool
 
 @app.get("/")
 def init():
@@ -20,7 +27,6 @@ def get_books():
 
     return out
 
-
 @app.get("/books/{id}")         # Поиск книги по ID
 def get_book(id: int):
     db = sqlite3.connect("books_database.db")
@@ -35,15 +41,30 @@ def get_book(id: int):
 
     return out, f"AVERAGE RATING - {avg_rating}"
 
+@app.post("/books")
+def add_book(new_book: NewBook):
+    db = sqlite3.connect("books_database.db")
+    c = db.cursor()
+
+    c.execute(f'INSERT INTO books (title, author, year, genre, is_read) '
+              f'VALUES (?, ?, ?, ?, ?)',
+              (new_book.title, new_book.author, new_book.year, new_book.genre, new_book.is_read))
+
+    db.commit()
+    db.close()
+    return {"status": "Created"}
+
+
+
 # Работа с рецензиями
 
-@app.get("/books/{id}/reviews")
+@app.get("/books/{id}/reviews")         # Вывод рецензий по определенной книге
 def get_review(id: int):
     db = sqlite3.connect("books_database.db")
     c = db.cursor()
 
     c.execute(f'SELECT title, comment FROM books '
-              f' JOIN reviews ON books.id = reviews.book_id'
+              f'JOIN reviews ON books.id = reviews.book_id '
               f'WHERE books.id = {id}')
 
     out = c.fetchall()
