@@ -54,8 +54,19 @@ def add_book(new_book: NewBook):
     db.close()
     return {"status": "Created"}
 
+@app.delete("/books/{id}")
+def delete_book(id: int):
 
+    db = sqlite3.connect("books_database.db")
+    c = db.cursor()
 
+    c.execute(f'DELETE FROM books WHERE books.id = {id} ')
+    c.execute(f'DELETE FROM reviews WHERE reviews.book_id = {id} ')
+
+    db.commit()
+    db.close()
+
+    return {"status": "Deleted"}
 # Работа с рецензиями
 
 @app.get("/books/{id}/reviews")         # Вывод рецензий по определенной книге
@@ -89,7 +100,3 @@ def book_recs():
     db.close()
 
     return rating
-
-
-
-
