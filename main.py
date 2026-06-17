@@ -7,6 +7,7 @@ app = FastAPI()
 def init():
     return "Hello message"
 
+# 1. CRUD для книг
 @app.get("/books")          # Вывод всех книг
 def get_books():
     db = sqlite3.connect("books_database.db")
@@ -18,6 +19,7 @@ def get_books():
     db.close()
 
     return out
+
 
 @app.get("/books/{id}")         # Поиск книги по ID
 def get_book(id: int):
@@ -32,6 +34,28 @@ def get_book(id: int):
     db.close()
 
     return out, f"AVERAGE RATING - {avg_rating}"
+
+# Работа с рецензиями
+
+
+
+# Специальные эндпоинты
+@app.get("/books/list/recomendations")
+def book_recs():
+    db = sqlite3.connect("books_database.db")
+    c = db.cursor()
+
+    c.execute("""SELECT title, AVG(rating) AS average_rating FROM books 
+              JOIN reviews ON books.id = reviews.book_id
+              GROUP BY title 
+              ORDER BY average_rating DESC 
+              LIMIT 5""")
+    rating = c.fetchall()
+
+    db.commit()
+    db.close()
+
+    return rating
 
 
 
