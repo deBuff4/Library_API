@@ -17,6 +17,9 @@ class UpdateBook(BaseModel):
     genre: str | None = 'None'
     is_read: bool | None = 0
 
+class UpdateReview(BaseModel):
+    rating: int
+    comment: str
 @app.get("/")
 def init():
     return "Hello message"
@@ -93,6 +96,30 @@ def delete_book(id: int):               # Удаление книги вмест
 
 # 2. Работа с рецензиями
 
+@app.post("/books/{id}/reviews")
+def add_review(new_review: UpdateReview, id: int):
+    db = sqlite3.connect("books_database.db")
+    c = db.cursor()
+
+    c.execute(f'SELECT EXISTS (SELECT 1 FROM reviews WHERE book_id = {id})')
+    existing = bool(c.fetchone()[0])
+
+    if existing:
+        c.execute(f'UPDATE reviews r '
+                  f'SET r.rating = ?, '
+                  f'r.comment = ? '
+                  f'WHERE r.book_id == {id}', (new_review.rating, new_review.comment))
+
+    elif not existing:
+        c.execute(f'INSERT INTO reviews (book_id,rating, comment) '
+              f'VALUES ({id}, ?, ?) '
+              f';', (new_review.rating, new_review.comment))
+
+    else: return "Error"
+
+    db.commit()
+    db.close()
+
 @app.get("/books/{id}/reviews")         # Вывод рецензий по определенной книге
 def get_review(id: int):
     db = sqlite3.connect("books_database.db")
@@ -137,3 +164,4 @@ def switch_is_read_status(id: int):
 
     db.commit()
     db.close()
+
