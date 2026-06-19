@@ -61,7 +61,7 @@ def add_book(new_book: NewBook):
     db.close()
     return {"status": "Created"}
 
-@app.put("/books/{id}")
+@app.put("/books/{id}")                     # Обновление информации о книге
 def update_book_info(update_info: UpdateBook, id: str):
     db = sqlite3.connect("books_database.db")
     c = db.cursor()
@@ -78,7 +78,7 @@ def update_book_info(update_info: UpdateBook, id: str):
     db.close()
 
 @app.delete("/books/{id}")
-def delete_book(id: int):
+def delete_book(id: int):               # Удаление книги вместе с рецензиями к ней
 
     db = sqlite3.connect("books_database.db")
     c = db.cursor()
@@ -90,7 +90,8 @@ def delete_book(id: int):
     db.close()
 
     return {"status": "Deleted"}
-# Работа с рецензиями
+
+# 2. Работа с рецензиями
 
 @app.get("/books/{id}/reviews")         # Вывод рецензий по определенной книге
 def get_review(id: int):
@@ -106,7 +107,7 @@ def get_review(id: int):
     db.close()
     return out
 
-# Специальные эндпоинты
+# 3. Специальные эндпоинты
 @app.get("/books/list/recomendations")
 def book_recs():
     db = sqlite3.connect("books_database.db")
