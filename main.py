@@ -10,6 +10,13 @@ class NewBook(BaseModel):
     genre: str
     is_read: bool
 
+class UpdateBook(BaseModel):
+    title: str | None = 'None'
+    author: str | None = 'None'
+    year: int | None = 0
+    genre: str | None = 'None'
+    is_read: bool | None = 0
+
 @app.get("/")
 def init():
     return "Hello message"
@@ -53,6 +60,22 @@ def add_book(new_book: NewBook):
     db.commit()
     db.close()
     return {"status": "Created"}
+
+@app.put("/books/{id}")
+def update_book_info(update_info: UpdateBook, id: str):
+    db = sqlite3.connect("books_database.db")
+    c = db.cursor()
+
+    c.execute(f'UPDATE books '
+              f'SET title = ?, '
+              f'author = ?, '
+              f'year = ?, '
+              f'genre = ?, '
+              f'is_read = ? '
+              f'WHERE books.id = {id}', (update_info.title, update_info.author, update_info.year, update_info.genre, update_info.is_read))
+
+    db.commit()
+    db.close()
 
 @app.delete("/books/{id}")
 def delete_book(id: int):
