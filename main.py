@@ -47,7 +47,7 @@ def add_book(new_book: NewBook):
     c = db.cursor()
 
     c.execute(f'INSERT INTO books (title, author, year, genre, is_read) '
-              f'VALUES (?, ?, ?, ?, ?)',
+              f'VALUES (?, ?, ?, ?, ?)',                        # Плейсхолдеры для безопасной передачи данных  в SQLite
               (new_book.title, new_book.author, new_book.year, new_book.genre, new_book.is_read))
 
     db.commit()
