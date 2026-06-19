@@ -134,6 +134,16 @@ def get_review(id: int):
     db.close()
     return out
 
+@app.delete("/reviews/{id}")
+def delete_review(id: int):
+    db = sqlite3.connect("books_database.db")
+    c = db.cursor()
+
+    c.execute(f'DELETE FROM reviews WHERE id = {id};')
+
+    db.commit()
+    db.close()
+
 # 3. Специальные эндпоинты
 @app.get("/books/list/recomendations")
 def book_recs():
