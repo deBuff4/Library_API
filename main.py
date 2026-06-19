@@ -124,3 +124,16 @@ def book_recs():
     db.close()
 
     return rating
+
+
+@app.patch("/books/{id}/toggle-read")
+def switch_is_read_status(id: int):
+    db = sqlite3.connect("books_database.db")
+    c = db.cursor()
+
+    c.execute(f'UPDATE books '
+              f'SET is_read = NOT is_read '
+              f'WHERE books.id = {id};')
+
+    db.commit()
+    db.close()
