@@ -162,6 +162,21 @@ def book_recs():
 
     return rating
 
+@app.get("/stats")
+def statistics():
+    db = sqlite3.connect("books_database.db")
+    c = db.cursor()
+
+    c.execute(f'SELECT COUNT(id) AS count_books, '
+        f'COUNT(is_read) FILTER (WHERE is_read = 1) AS count_is_read, '
+        f'ROUND(AVG(year)) AS round_avg_year, '
+        f'(SELECT genre FROM books GROUP BY genre ORDER BY COUNT(genre) DESC LIMIT 1) FROM books '
+        f'LIMIT 3')
+    stats = c.fetchall()[0]
+    dict_stats = [("count books", stats[0]), ("count is read", stats[1]), ("round avg year", stats[2]), ("best genre", stats[3])]       # Потом надо перевести в норм JSON
+    db.commit()
+    db.close()
+    return dict_stats
 
 @app.patch("/books/{id}/toggle-read")
 def switch_is_read_status(id: int):
