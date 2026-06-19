@@ -17,6 +17,9 @@ class UpdateBook(BaseModel):
     genre: str | None = 'None'
     is_read: bool | None = 0
 
+class UpdateReview(BaseModel):
+    rating: int
+    comment: str
 @app.get("/")
 def init():
     return "Hello message"
@@ -61,7 +64,7 @@ def add_book(new_book: NewBook):
     db.close()
     return {"status": "Created"}
 
-@app.put("/books/{id}")
+@app.put("/books/{id}")                     # Обновление информации о книге
 def update_book_info(update_info: UpdateBook, id: str):
     db = sqlite3.connect("books_database.db")
     c = db.cursor()
@@ -78,7 +81,7 @@ def update_book_info(update_info: UpdateBook, id: str):
     db.close()
 
 @app.delete("/books/{id}")
-def delete_book(id: int):
+def delete_book(id: int):               # Удаление книги вместе с рецензиями к ней
 
     db = sqlite3.connect("books_database.db")
     c = db.cursor()
@@ -90,7 +93,32 @@ def delete_book(id: int):
     db.close()
 
     return {"status": "Deleted"}
-# Работа с рецензиями
+
+# 2. Работа с рецензиями
+
+@app.post("/books/{id}/reviews")
+def add_review(new_review: UpdateReview, id: int):
+    db = sqlite3.connect("books_database.db")
+    c = db.cursor()
+
+    c.execute(f'SELECT EXISTS (SELECT 1 FROM reviews WHERE book_id = {id})')
+    existing = bool(c.fetchone()[0])
+
+    if existing:
+        c.execute(f'UPDATE reviews r '
+                  f'SET r.rating = ?, '
+                  f'r.comment = ? '
+                  f'WHERE r.book_id == {id}', (new_review.rating, new_review.comment))
+
+    elif not existing:
+        c.execute(f'INSERT INTO reviews (book_id,rating, comment) '
+              f'VALUES ({id}, ?, ?) '
+              f';', (new_review.rating, new_review.comment))
+
+    else: return "Error"
+
+    db.commit()
+    db.close()
 
 @app.get("/books/{id}/reviews")         # Вывод рецензий по определенной книге
 def get_review(id: int):
@@ -106,7 +134,17 @@ def get_review(id: int):
     db.close()
     return out
 
-# Специальные эндпоинты
+@app.delete("/reviews/{id}")
+def delete_review(id: int):
+    db = sqlite3.connect("books_database.db")
+    c = db.cursor()
+
+    c.execute(f'DELETE FROM reviews WHERE id = {id};')
+
+    db.commit()
+    db.close()
+
+# 3. Специальные эндпоинты
 @app.get("/books/list/recomendations")
 def book_recs():
     db = sqlite3.connect("books_database.db")
@@ -123,3 +161,17 @@ def book_recs():
     db.close()
 
     return rating
+
+
+@app.patch("/books/{id}/toggle-read")
+def switch_is_read_status(id: int):
+    db = sqlite3.connect("books_database.db")
+    c = db.cursor()
+
+    c.execute(f'UPDATE books '
+              f'SET is_read = NOT is_read '
+              f'WHERE books.id = {id};')
+
+    db.commit()
+    db.close()
+
