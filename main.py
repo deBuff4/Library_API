@@ -3,6 +3,16 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 app = FastAPI()
 
+class GetBook(BaseModel):
+    title: str | None = None,
+    genre: str | None = None,
+    author: str | None = None,
+    year_from: int | None = None,
+    year_to: int | None = None,
+    is_read: bool | None = 0,
+    search: str | None = None
+
+
 class NewBook(BaseModel):
     title: str
     author: str
@@ -26,11 +36,23 @@ def init():
 
 # 1. CRUD для книг
 @app.get("/books")          # Вывод всех книг
-def get_books():
+def get_books(get_book:GetBook):            # Переделать c Query параметрами нормальными
+    #
+    # conditions = []
+    # if get_book.title is not None:
+    #     conditions.append(f'title LIKE ')
+    # if get_book.genre is not None:
+    #     conditions.append(f'genre == {get_book.genre}')
+    # if get_book
+
+
+
     db = sqlite3.connect("books_database.db")
 
     c = db.cursor()
-    c.execute("""SELECT * FROM books""")
+
+    c.execute("""SELECT * FROM books WHERE """)
+    
     out = c.fetchall()
     db.commit()
     db.close()
